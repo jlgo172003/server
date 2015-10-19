@@ -1,5 +1,5 @@
 $(document).ready(function(){
-	var hostname = "http://localhost:3000";
+	var hostname = "https://accedo.herokuapp.com/";
 	
 	//Handles Recently Viewed
 	var list = {};
