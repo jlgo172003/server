@@ -1,0 +1,111 @@
+body {
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+body {
+	margin: 10px;
+}
+#vid-slider {
+	position:relative;
+}
+
+.video-set {
+	float:left;
+	cursor:pointer;
+}
+
+.video-set h3 {
+	text-align: center;
+}
+
+.clearfix {
+	clear:both;
+}
+
+#vid-wrapper {
+	width: 90%;
+	margin: 0 auto;
+	overflow-x: hidden;
+}
+
+video[poster]{
+	height: 250px;
+	width: 100%;
+}
+
+.bg0 {
+	background-color: #e1e1e1;
+}
+
+.bg1 {
+	background-color: #BFEFFF;
+}
+
+video.selected {
+	background-color: lime;
+}
+
+.arrows {
+	font-size: 3em;
+	position: absolute;
+	margin-top: 85px;
+	background-color: white;
+	z-index: 100;
+	cursor: pointer;
+}
+
+.right-arrow {
+	right:10px;
+}
+
+.left{
+	float:left
+}
+
+#main-content {
+	width: 65%;
+}
+
+#main-content h1 {
+	text-align: center;
+}
+
+#watched {
+	width: 35%;
+}
+
+#watched .title  {
+	padding-left: 40px;
+}
+
+#watched .title .fa {
+	font-size: 20px;
+    padding-top: 19px;
+    padding-right: 10px;
+}
+
+#watched ul {
+	list-style-type: none;
+	font-size: 12pt;
+}
+
+#watched ul li {
+	padding: 10px 28px;
+}
+
+#watched ul li .fa-eye {
+	margin-right: 10px;
+}
+
+#watched p {
+	margin: 0px;
+}
+
+#watched li:hover {
+	background-color: lime;
+	cursor: pointer;
+}
