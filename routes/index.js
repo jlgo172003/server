@@ -29,6 +29,7 @@ router.get('/getrecent', function(req,res){
 				'name' : query,
 				'watched' : doc[0]['watched']
 			});
+			
 			res.write(json);
 		}
 		res.end();
@@ -49,6 +50,12 @@ router.post('/addrecentview', function(req, res) {
 		
 		if(typeof doc[0] != 'undefined') {
 			watched = doc[0]['watched'];
+			var index = watched.indexOf(title);
+			
+			if( index >= 0 ) {
+				watched.splice(index,1);
+			}
+			
 			watched.push(title);
 		}
 		

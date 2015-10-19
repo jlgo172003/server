@@ -1,10 +1,23 @@
+
+
 $(document).ready(function(){
-	var hostname = "https://accedo.herokuapp.com";
+	//var hostname = "https://accedo.herokuapp.com";
+	var hostname = "http://localhost:3000";
 	
 	//Handles Recently Viewed
 	var list = {};
 	function getName() {
 		return new Fingerprint().get();
+	}
+	
+	function sort() {
+		var ctr = 0;
+		$("#watched li").each(function(index, li){
+			$(this).removeClass("bg0");
+			$(this).removeClass("bg1");
+			$(this).addClass("bg"+(ctr%2));
+			ctr++;
+		});
 	}
 	
 	function postJSON(name, title) {
@@ -22,7 +35,6 @@ $(document).ready(function(){
 	}
 	
 	function addRecentlyViewedEntry(title) {
-		console.log( list[title] );
 		if( list[title] == undefined) {
 			var recentCount = $("#watched ul > li").length;
 			toAdd = "";
@@ -31,10 +43,16 @@ $(document).ready(function(){
 			toAdd += 	"<p class=\"left\">"+title+"</p>";
 			toAdd += 	"<div class=\"clearfix\"></div>";
 			toAdd += "</li>";
-			$("#watched ul").append(toAdd);
+			$("#watched ul").prepend(toAdd);
 			list[title] = 1;
+		} else {
+			$("#watched li").each(function(){
+				if($(this).text() == title ) {
+					$(this).parent().prepend(this);
+					sort();
+				}
+			});
 		}
-		console.log( list[title] );
 	}
 	
 	function addRecentlyViewed(video) {
