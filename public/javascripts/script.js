@@ -6,10 +6,12 @@ $(document).ready(function(){
 	
 	//Handles Recently Viewed
 	var list = {};
+	
 	function getName() {
 		return new Fingerprint().get();
 	}
 	
+	//Makes sure the bg color of the recently watched list is alternating
 	function sort() {
 		var ctr = 0;
 		$("#watched li").each(function(index, li){
@@ -35,6 +37,8 @@ $(document).ready(function(){
 	}
 	
 	function addRecentlyViewedEntry(title) {
+		//checks if video was already in the list.
+		//if it is, then move it on top of the list.
 		if( list[title] == undefined) {
 			var recentCount = $("#watched ul > li").length;
 			toAdd = "";
@@ -63,10 +67,14 @@ $(document).ready(function(){
 		addRecentlyViewedEntry(title); 
 	}
 	
+	//show the video on the screen
 	function moveOnScreen(video) {
 		var id = parseInt($(video).attr("id").replace("video-",""));
 		if( !inView(id) ) {
 			var diff = 0;
+			
+			//checks if video is among the last 4 in the list
+			//if it is, then adjust scrolling accordingly
 			if( id > $("video").length-4 ){
 				diff = rightScroll-($("video").length-4);
 				rightScroll = 26;
@@ -114,6 +122,7 @@ $(document).ready(function(){
     var rightScroll = 0.0;
 	var count = 0;
 	
+	//sets up the video carousel.
 	function setup() {
 		var toAdd = "";
 		for( var x = 0; x < source["totalCount"]; x++ ) {
@@ -136,9 +145,11 @@ $(document).ready(function(){
 		toAdd += "<div class=\"clearfix\"></div>";
 		$("#vid-slider").html(toAdd);
 		
+		//sets width to adjust according to width of browser
 		$("#vid-slider").css("width", count*25+"%");
 		$(".video-set").css("width", ((1/count)*100)+"%");
 		
+		//add on click listener for the videos
 		$("#vid-slider video").click(function() {
 			var vid = $(this).get(0);
 			
@@ -155,6 +166,7 @@ $(document).ready(function(){
 			addRecentlyViewed(vid);
 		});
 		
+		//add on ended listener for the videos
 		$("#vid-slider video").on( "ended", function() {
 			var vid = $(this).get(0);
 			if (vid.exitFullscreen) {
@@ -168,6 +180,8 @@ $(document).ready(function(){
 			}
 			vid.load();
 		});
+		
+		//adds a listener when fullscreen mode is toggled
 		$('#vid-slider video').bind('webkitfullscreenchange mozfullscreenchange fullscreenchange', function(e) {
 			var state = document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen;
 			if( !state ) {
@@ -176,18 +190,83 @@ $(document).ready(function(){
 			}
 			
 		});
+		
+		//adds on click listener for the arrow carrousel
+		$( ".right-arrow" ).click(function() {
+			
+			if(rightScroll+4 < count ) {
+				var width = getActualWidth();
+				rightScroll ++;
+				var selectedID = parseInt($("video.selected").attr("id").replace("video-",""));
+				animateSlider(-1*width, !inView(selectedID), $("#video-"+rightScroll));
+			}
+			
+		});
+		
+		$( ".left-arrow" ).click(function() {
+			if( rightScroll > 0 ) {
+				var width = getActualWidth();
+				rightScroll --;
+				var selectedID = parseInt($("video.selected").attr("id").replace("video-",""));
+				animateSlider(width, !inView(selectedID), $("#video-"+(rightScroll+3)));
+			}
+			
+		});
+		
+		$(window).resize(function() {
+			adjustSlider();
+		});
+		
+		$("video").hover(function(){
+			var id = $(this).attr("id").replace("video-","");
+			if( inView(id)) {
+				changeSelected($("video.selected"), $(this));
+			}
+			
+		}, function(){});
+		
+		$(document).keyup(function(event) {
+			var LEFT_KEY = 37;
+			var RIGHT_KEY = 39;
+			var ENTER = 13;
+			
+			if( event.keyCode == LEFT_KEY ) {
+				var selectedVideo = $("video.selected"); 
+				var selectedID = parseInt(selectedVideo.attr("id").replace("video-",""));
+
+				if( selectedID > 0 ) {
+					changeSelected(selectedVideo,$("#video-"+(selectedID-1)) );
+					if( !inView(selectedID-1) ) $(".left-arrow").click();
+				}
+			} else if (event.keyCode == RIGHT_KEY ) {
+				var selectedVideo = $("video.selected"); 
+				var selectedID = parseInt(selectedVideo.attr("id").replace("video-",""));
+
+				if( selectedID < count-1 ) {
+					changeSelected(selectedVideo, $("#video-"+(selectedID+1)) );
+					if( !inView(selectedID+1) )$(".right-arrow").click();
+				}
+			} else if(event.keyCode == ENTER ) {
+				$("video.selected").click();
+			}
+			
+		});
 	}
 	
+	//gets floating point width of each video
 	function getActualWidth() {
 		if( count > 0 ) return $("#vid-slider").width()/count;
 		return 0;
 	}
 	
+	//adjusts the left css attribute of video slider
 	function adjustSlider() {
 		actualWidth = getActualWidth();
 		$("#vid-slider").css("left", -1*actualWidth*rightScroll );
 	}
 	
+	//checks if video id(num) is in view.
+	//ie. checks if video is on screen
 	function inView(num) {
 		return rightScroll <= num && num <= rightScroll+3;
 	}
@@ -197,6 +276,9 @@ $(document).ready(function(){
 		curr.addClass("selected");
 	}
 	
+	//moves the carousel a certain distance.
+	//afterwards, it checks for checkSelectedCondition, if it is true,
+	//it changes the selected video into changeSelectedTarget
 	function animateSlider(distance, changeSelectedCondition, changeSelectedTarget) {
 		$( "#vid-slider" ).animate({
 			left: "+="+distance,
@@ -212,90 +294,10 @@ $(document).ready(function(){
 		});
 	}
 	
+	//calls the setup function
 	setup();
 	
-	$( ".right-arrow" ).click(function() {
-		
-		if(rightScroll+4 < count ) {
-			var width = getActualWidth();
-			rightScroll ++;
-			var selectedID = parseInt($("video.selected").attr("id").replace("video-",""));
-			animateSlider(-1*width, !inView(selectedID), $("#video-"+rightScroll));
-			/*$( "#vid-slider" ).animate({
-				left: "-="+width,
-			}, 500, function() {
-				selectedVideo = $("video.selected"); 
-				selectedID = selectedVideo.attr("id");
-				number = selectedID.replace("video-", "");
-				if( !inView(number) ) {
-					changeSelected(selectedVideo, $("#video-"+rightScroll));
-				}
-				adjustSlider();
-			});*/
-		}
-		
-	});
 	
-	$( ".left-arrow" ).click(function() {
-		if( rightScroll > 0 ) {
-			var width = getActualWidth();
-			rightScroll --;
-			var selectedID = parseInt($("video.selected").attr("id").replace("video-",""));
-			animateSlider(width, !inView(selectedID), $("#video-"+(rightScroll+3)));
-			
-			/*$( "#vid-slider" ).animate({
-				left: "+="+width,
-			}, 500, function() {
-				selectedVideo = $("video.selected"); 
-				selectedID = selectedVideo.attr("id");
-				number = selectedID.replace("video-", "");
-				if( !inView(number) ) {
-					changeSelected(selectedVideo, $("#video-"+(rightScroll+3)));
-				}
-				adjustSlider();
-			});*/
-		}
-		
-	});
-	
-	$(window).resize(function() {
-		adjustSlider();
-	});
-	
-	$("video").hover(function(){
-		var id = $(this).attr("id").replace("video-","");
-		if( inView(id)) {
-			changeSelected($("video.selected"), $(this));
-		}
-		
-	}, function(){});
-	
-	$(document).keyup(function(event) {
-		var LEFT_KEY = 37;
-		var RIGHT_KEY = 39;
-		var ENTER = 13;
-		
-		if( event.keyCode == LEFT_KEY ) {
-			var selectedVideo = $("video.selected"); 
-			var selectedID = parseInt(selectedVideo.attr("id").replace("video-",""));
-
-			if( selectedID > 0 ) {
-				changeSelected(selectedVideo,$("#video-"+(selectedID-1)) );
-				if( !inView(selectedID-1) ) $(".left-arrow").click();
-			}
-		} else if (event.keyCode == RIGHT_KEY ) {
-			var selectedVideo = $("video.selected"); 
-			var selectedID = parseInt(selectedVideo.attr("id").replace("video-",""));
-
-			if( selectedID < count-1 ) {
-				changeSelected(selectedVideo, $("#video-"+(selectedID+1)) );
-				if( !inView(selectedID+1) )$(".right-arrow").click();
-			}
-		} else if(event.keyCode == ENTER ) {
-			$("video.selected").click();
-		}
-		
-	});
 	
 	
 	

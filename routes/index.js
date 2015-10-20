@@ -16,26 +16,27 @@ router.get('/getrecent', function(req,res){
 	res.writeHead(200, {'Content­Type': 'text/html'});
 	
 	wdb.find({name: query}, function(err, doc){
+		
+		//if entry doesnt exist, create the entry
 		if(typeof doc[0] == 'undefined') {
 			wdb.insert({
 				'name': query,
 				'watched' : []
-			}, function(err,doc){
-				
-			});
+			}, function(err,doc){});
 		}
+		//if entry exists, get the list and return it
 		else {
 			json = JSON.stringify({
 				'name' : query,
 				'watched' : doc[0]['watched']
 			});
-			
 			res.write(json);
 		}
 		res.end();
 	});
 });
 
+/* POST add recently watched video */
 router.post('/addrecentview', function(req, res) {
 
     // Set our internal DB variable
@@ -45,6 +46,7 @@ router.post('/addrecentview', function(req, res) {
     var name = req.body.name;
     var title = req.body.title;
 	
+	
 	wdb.find({name: name}, function(err, doc){
 		var watched = [title]
 		
@@ -52,25 +54,21 @@ router.post('/addrecentview', function(req, res) {
 			watched = doc[0]['watched'];
 			var index = watched.indexOf(title);
 			
+			//if entry already exists, remove it and push it back
+			//to the list. this way, entry is moved up in the list. 
 			if( index >= 0 ) {
 				watched.splice(index,1);
 			}
-			
 			watched.push(title);
 		}
-		
-		console.log(watched);
+
 		wdb.update({
 			'name': name
 		}, {
 			'name': name,
 			'watched' : watched
-		},function(err,doc){
-			
-		});
+		},function(err,doc){});
 	});
-	
-    
 	res.send("OK");
 });
 module.exports = router;
