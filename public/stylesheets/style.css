@@ -92,7 +92,7 @@ video.selected {
 	list-style-type: none;
 	font-size: 12pt;
 	height: 350px;
-	overflow-y: scroll;
+	overflow-y: auto;
 }
 
 #watched ul li {
