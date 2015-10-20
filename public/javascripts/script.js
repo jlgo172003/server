@@ -45,6 +45,7 @@ $(document).ready(function(){
 			toAdd += "</li>";
 			$("#watched ul").prepend(toAdd);
 			list[title] = 1;
+			addListener();
 		} else {
 			$("#watched li").each(function(){
 				if($(this).text() == title ) {
@@ -62,6 +63,37 @@ $(document).ready(function(){
 		addRecentlyViewedEntry(title); 
 	}
 	
+	function moveOnScreen(video) {
+		var id = parseInt($(video).attr("id").replace("video-",""));
+		if( !inView(id) ) {
+			var diff = 0;
+			if( id > $("video").length-4 ){
+				diff = rightScroll-($("video").length-4);
+				rightScroll = 26;
+			} else {
+				diff = rightScroll - id;
+				rightScroll = id;
+			}
+			
+			var width = getActualWidth();
+			animateSlider(width*diff, true, $(video));
+		} else {
+			changeSelected($("video.selected"), $(video));
+		}
+	}
+	
+	function addListener() {
+		$("#watched li").click(function() {
+			var title = $(this).text();
+			$("#vid-slider video").each(function(){
+				var vidTitle = $(this).attr("title");
+				if( vidTitle == title ) {
+					moveOnScreen($(this));
+				}
+			});
+		});
+	}
+	
 	function populateRecentlyViewed() {
 		var name = getName();
 		$.ajax({
@@ -71,9 +103,11 @@ $(document).ready(function(){
 			for( title in data.watched ) {
 				addRecentlyViewedEntry(data.watched[title]);
 				list[title] = 1;
+				addListener();
 			}
 		});
 	}
+	
 	populateRecentlyViewed();
 	
 	//Handles Video Carousel
@@ -158,24 +192,46 @@ $(document).ready(function(){
 		return rightScroll <= num && num <= rightScroll+3;
 	}
 	
+	function changeSelected(prev, curr) {
+		prev.removeClass("selected");
+		curr.addClass("selected");
+	}
+	
+	function animateSlider(distance, changeSelectedCondition, changeSelectedTarget) {
+		$( "#vid-slider" ).animate({
+			left: "+="+distance,
+		}, 500, function() {
+			var selectedVideo = $("video.selected"); 
+			var selectedID = selectedVideo.attr("id");
+			var number = selectedID.replace("video-", "");
+			
+			if( changeSelectedCondition ) {
+				changeSelected(selectedVideo, changeSelectedTarget);
+			}
+			adjustSlider();
+		});
+	}
+	
 	setup();
+	
 	$( ".right-arrow" ).click(function() {
 		
 		if(rightScroll+4 < count ) {
 			var width = getActualWidth();
 			rightScroll ++;
-			$( "#vid-slider" ).animate({
+			var selectedID = parseInt($("video.selected").attr("id").replace("video-",""));
+			animateSlider(-1*width, !inView(selectedID), $("#video-"+rightScroll));
+			/*$( "#vid-slider" ).animate({
 				left: "-="+width,
 			}, 500, function() {
 				selectedVideo = $("video.selected"); 
 				selectedID = selectedVideo.attr("id");
 				number = selectedID.replace("video-", "");
 				if( !inView(number) ) {
-					selectedVideo.removeClass("selected");
-					$("#video-"+rightScroll).addClass("selected");
+					changeSelected(selectedVideo, $("#video-"+rightScroll));
 				}
 				adjustSlider();
-			});
+			});*/
 		}
 		
 	});
@@ -184,18 +240,20 @@ $(document).ready(function(){
 		if( rightScroll > 0 ) {
 			var width = getActualWidth();
 			rightScroll --;
-			$( "#vid-slider" ).animate({
+			var selectedID = parseInt($("video.selected").attr("id").replace("video-",""));
+			animateSlider(width, !inView(selectedID), $("#video-"+(rightScroll+3)));
+			
+			/*$( "#vid-slider" ).animate({
 				left: "+="+width,
 			}, 500, function() {
 				selectedVideo = $("video.selected"); 
 				selectedID = selectedVideo.attr("id");
 				number = selectedID.replace("video-", "");
 				if( !inView(number) ) {
-					selectedVideo.removeClass("selected");
-					$("#video-"+(rightScroll+3)).addClass("selected");
+					changeSelected(selectedVideo, $("#video-"+(rightScroll+3)));
 				}
 				adjustSlider();
-			});
+			});*/
 		}
 		
 	});
@@ -205,31 +263,32 @@ $(document).ready(function(){
 	});
 	
 	$("video").hover(function(){
-		$("video.selected").removeClass("selected");
-		$(this).addClass("selected");
+		var id = $(this).attr("id").replace("video-","");
+		if( inView(id)) {
+			changeSelected($("video.selected"), $(this));
+		}
+		
 	}, function(){});
 	
 	$(document).keyup(function(event) {
-		LEFT_KEY = 37;
-		RIGHT_KEY = 39;
-		ENTER = 13;
+		var LEFT_KEY = 37;
+		var RIGHT_KEY = 39;
+		var ENTER = 13;
 		
 		if( event.keyCode == LEFT_KEY ) {
-			selectedVideo = $("video.selected"); 
-			selectedID = parseInt(selectedVideo.attr("id").replace("video-",""));
+			var selectedVideo = $("video.selected"); 
+			var selectedID = parseInt(selectedVideo.attr("id").replace("video-",""));
 
 			if( selectedID > 0 ) {
-				selectedVideo.removeClass("selected");
-				$("#video-"+(selectedID-1)).addClass("selected");
+				changeSelected(selectedVideo,$("#video-"+(selectedID-1)) );
 				if( !inView(selectedID-1) ) $(".left-arrow").click();
 			}
 		} else if (event.keyCode == RIGHT_KEY ) {
-			selectedVideo = $("video.selected"); 
-			selectedID = parseInt(selectedVideo.attr("id").replace("video-",""));
+			var selectedVideo = $("video.selected"); 
+			var selectedID = parseInt(selectedVideo.attr("id").replace("video-",""));
 
 			if( selectedID < count-1 ) {
-				selectedVideo.removeClass("selected");
-				$("#video-"+(selectedID+1)).addClass("selected");
+				changeSelected(selectedVideo, $("#video-"+(selectedID+1)) );
 				if( !inView(selectedID+1) )$(".right-arrow").click();
 			}
 		} else if(event.keyCode == ENTER ) {
